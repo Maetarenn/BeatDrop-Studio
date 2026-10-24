@@ -1,0 +1,3 @@
+bmd exists
+bmd.openurl exists
+os.execute exists

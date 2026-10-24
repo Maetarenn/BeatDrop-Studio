@@ -1,0 +1,28 @@
+# ---- Temel Backend (zorunlu) ----
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+librosa==0.10.2.post1
+numpy==1.26.4
+scipy==1.13.1
+soundfile==0.12.1
+python-multipart==0.0.9
+websockets==12.0
+pydantic==2.7.1
+requests==2.32.3
+
+# ---- Kurulum Sihirbazı UI ----
+customtkinter>=5.2.0
+darkdetect>=0.8.0
+
+# ---- AI Katmanı (opsiyonel — /analyze/ai endpoint'i için) ----
+# Whisper (Konuşma → Metin + Zaman Damgası)
+openai-whisper==20231117
+
+# YAMNet — Ses Olay Sınıflandırma (521 AudioSet sınıfı)
+tensorflow==2.16.1
+tensorflow-hub==0.16.1
+
+# Wav2Vec 2.0 — Duygu Analizi
+transformers==4.41.2
+torch==2.3.0
+torchaudio==2.3.0

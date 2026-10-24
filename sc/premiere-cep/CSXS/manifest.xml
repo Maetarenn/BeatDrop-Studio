@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!--
+=============================================================================
+manifest.xml — Adobe CEP Eklenti Manifest Dosyası
+BeatDrop Studio v1.0
+=============================================================================
+Bu dosya, Adobe Premiere Pro'nun eklenti sistemine panelin nasıl
+yükleneceğini söyler. Kurulum için tüm klasörü şu dizine kopyalayın:
+  Windows: %APPDATA%\Adobe\CEP\extensions\BeatDropStudio\
+  macOS:   ~/Library/Application Support/Adobe/CEP/extensions/BeatDropStudio/
+=============================================================================
+-->
+<ExtensionManifest
+  Version="7.0"
+  ExtensionBundleId="com.BeatDropStudio.premiere"
+  ExtensionBundleVersion="1.0.0"
+  ExtensionBundleName="Smart Sound Design &amp; Pacing">
+
+  <ExtensionList>
+    <Extension Id="com.BeatDropStudio.premiere.panel" Version="1.0.0" />
+  </ExtensionList>
+
+  <ExecutionEnvironment>
+    <!-- Desteklenen Adobe ürünleri ve sürümleri -->
+    <HostList>
+      <Host Name="PPRO" Version="[15.0,99.9]" />  <!-- Premiere Pro 2021+ -->
+    </HostList>
+
+    <!-- CEP sürümü gerekliliği -->
+    <LocaleList>
+      <Locale Code="All" />
+    </LocaleList>
+
+    <RequiredRuntimeList>
+      <RequiredRuntime Name="CSXS" Version="11.0" />
+    </RequiredRuntimeList>
+  </ExecutionEnvironment>
+
+  <DispatchInfoList>
+    <Extension Id="com.BeatDropStudio.premiere.panel">
+      <DispatchInfo>
+        <Resources>
+          <!-- Panel HTML dosyasının yolu -->
+          <MainPath>./panel/index.html</MainPath>
+          <!-- ExtendScript köprü dosyası -->
+          <ScriptPath>./extendscript/bridge.jsx</ScriptPath>
+          <!-- CEP kütüphaneleri (Adobe SDK'dan kopyalanmalı) -->
+          <CEFCommandLine>
+            <Parameter>--allow-file-access-from-files</Parameter>
+            <Parameter>--allow-running-insecure-content</Parameter>
+          </CEFCommandLine>
+        </Resources>
+
+        <Lifecycle>
+          <!-- Panel açıldığında otomatik yükle -->
+          <AutoVisible>true</AutoVisible>
+          <StartOn>
+            <Event>applicationActivate</Event>
+          </StartOn>
+        </Lifecycle>
+
+        <UI>
+          <!-- Docked panel (sol veya sağ panel) -->
+          <Type>Panel</Type>
+          <Menu>Smart Sound Design &amp; Pacing</Menu>
+          <Geometry>
+            <Size>
+              <Height>600</Height>
+              <Width>300</Width>
+            </Size>
+            <MinSize>
+              <Height>400</Height>
+              <Width>260</Width>
+            </MinSize>
+            <MaxSize>
+              <Height>900</Height>
+              <Width>500</Width>
+            </MaxSize>
+          </Geometry>
+          <Icons>
+            <!-- İkon dosyalarını panel/ klasörüne ekleyin -->
+            <Icon Type="Normal">./panel/icons/icon_normal.png</Icon>
+            <Icon Type="Hover">./panel/icons/icon_hover.png</Icon>
+          </Icons>
+        </UI>
+      </DispatchInfo>
+    </Extension>
+  </DispatchInfoList>
+
+</ExtensionManifest>

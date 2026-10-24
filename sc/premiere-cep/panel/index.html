@@ -1,0 +1,1011 @@
+﻿<!--
+=============================================================================
+index.html — BeatDrop Studio v1.0
+Adobe Premiere Pro CEP Panel — Ticari Arayüz
+=============================================================================
+Tasarım: Modern dark theme, glassmorphism kartlar, animasyonlu grafikler.
+Bu panel Adobe Premiere Pro Extensions menüsünden açılır.
+=============================================================================
+-->
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Smart Sound Design</title>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   DESIGN TOKENS
+═══════════════════════════════════════════════════════════ */
+:root{
+  --bg:        #0a0a0f;
+  --surface:   #111118;
+  --surface2:  #18181f;
+  --surface3:  #1e1e28;
+  --border:    rgba(255,255,255,.07);
+  --border-hi: rgba(124,58,237,.5);
+  --accent:    #7c3aed;
+  --accent2:   #a855f7;
+  --accent3:   #c084fc;
+  --glow:      rgba(124,58,237,.25);
+  --success:   #22c55e;
+  --warn:      #f59e0b;
+  --danger:    #ef4444;
+  --text:      #f1f5f9;
+  --sub:       #94a3b8;
+  --muted:     #475569;
+  --r:         10px;
+  --r-lg:      16px;
+  --shadow:    0 8px 32px rgba(0,0,0,.6);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+html,body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:'Segoe UI',system-ui,sans-serif;
+  font-size:12px;
+  height:100%;
+  overflow-x:hidden;
+}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:var(--surface)}
+::-webkit-scrollbar-thumb{background:var(--accent);border-radius:4px}
+
+/* ═══════════════════════════════════════════════════════════
+   LAYOUT
+═══════════════════════════════════════════════════════════ */
+.shell{
+  display:flex;
+  flex-direction:column;
+  height:100vh;
+  overflow:hidden;
+}
+
+/* ── TOPBAR ──────────────────────────────────────────────── */
+.topbar{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px 10px;
+  background:var(--surface);
+  border-bottom:1px solid var(--border);
+  flex-shrink:0;
+  position:relative;
+  overflow:hidden;
+}
+.topbar::before{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg,var(--glow),transparent 60%);
+  pointer-events:none;
+}
+.logo{
+  width:32px;height:32px;
+  border-radius:8px;
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;flex-shrink:0;
+  box-shadow:0 0 14px var(--glow);
+}
+.brand h1{font-size:13px;font-weight:700;letter-spacing:.3px}
+.brand p{font-size:9px;color:var(--sub);letter-spacing:.5px;text-transform:uppercase}
+.status-dot{
+  margin-left:auto;
+  display:flex;align-items:center;gap:5px;
+  font-size:10px;color:var(--muted);
+  cursor:pointer;
+}
+.dot{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--muted);
+  transition:background .3s;
+  flex-shrink:0;
+}
+.dot.ok{background:var(--success);box-shadow:0 0 6px var(--success)}
+.dot.err{background:var(--danger);box-shadow:0 0 6px var(--danger)}
+.dot.pulsing{animation:pulse 1.4s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ── TABS ────────────────────────────────────────────────── */
+.tabs{
+  display:flex;
+  border-bottom:1px solid var(--border);
+  background:var(--surface);
+  flex-shrink:0;
+}
+.tab{
+  flex:1;padding:8px 4px;
+  text-align:center;font-size:10px;font-weight:600;
+  color:var(--muted);cursor:pointer;letter-spacing:.4px;
+  text-transform:uppercase;
+  border-bottom:2px solid transparent;
+  transition:all .2s;user-select:none;
+}
+.tab.active{color:var(--accent2);border-color:var(--accent)}
+.tab:hover:not(.active){color:var(--sub)}
+
+/* ── SCROLL BODY ─────────────────────────────────────────── */
+.body{
+  flex:1;overflow-y:auto;
+  padding:12px;
+  display:flex;flex-direction:column;gap:10px;
+}
+
+/* ── BOTTOM BAR ──────────────────────────────────────────── */
+.bottombar{
+  padding:10px 12px;
+  background:var(--surface);
+  border-top:1px solid var(--border);
+  flex-shrink:0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CARDS
+═══════════════════════════════════════════════════════════ */
+.card{
+  background:var(--surface2);
+  border:1px solid var(--border);
+  border-radius:var(--r);
+  padding:12px;
+  position:relative;
+  overflow:hidden;
+}
+.card.glow{border-color:var(--border-hi);box-shadow:0 0 20px var(--glow)}
+.card-title{
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.6px;color:var(--sub);margin-bottom:8px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   WAVEFORM CANVAS (Animasyon)
+═══════════════════════════════════════════════════════════ */
+.waveform-wrap{
+  position:relative;height:54px;
+  background:var(--surface3);
+  border-radius:8px;overflow:hidden;
+}
+#waveCanvas{display:block;width:100%;height:100%}
+.waveform-overlay{
+  position:absolute;inset:0;
+  background:linear-gradient(90deg,var(--surface3) 0%,transparent 8%,transparent 92%,var(--surface3) 100%);
+  pointer-events:none;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STATS ROW
+═══════════════════════════════════════════════════════════ */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.stat{
+  background:var(--surface3);border-radius:8px;
+  padding:8px 6px;text-align:center;
+}
+.stat-val{font-size:16px;font-weight:800;color:var(--accent2);line-height:1}
+.stat-lbl{font-size:9px;color:var(--muted);text-transform:uppercase;margin-top:3px}
+
+/* ═══════════════════════════════════════════════════════════
+   EVENT LIST
+═══════════════════════════════════════════════════════════ */
+.event-list{display:flex;flex-direction:column;gap:3px;max-height:160px;overflow-y:auto}
+.event-row{
+  display:grid;
+  grid-template-columns:72px 1fr 62px 38px;
+  gap:6px;align-items:center;
+  padding:5px 8px;
+  border-radius:6px;
+  background:var(--surface3);
+  font-size:10px;transition:background .15s;cursor:default;
+}
+.event-row:hover{background:var(--surface)}
+.tc{font-family:monospace;color:var(--sub);font-size:10px}
+.ev-type{color:var(--text);font-weight:600;font-size:10px}
+.sfx-pill{
+  font-size:8px;font-weight:700;letter-spacing:.5px;
+  padding:2px 6px;border-radius:20px;text-align:center;
+  text-transform:uppercase;
+}
+.sfx-whoosh  {background:rgba(245,158,11,.15);color:#f59e0b}
+.sfx-sub_bass{background:rgba(239,68,68,.15); color:#ef4444}
+.sfx-pop     {background:rgba(34,211,238,.15);color:#22d3ee}
+.sfx-ding    {background:rgba(34,197,94,.15); color:#22c55e}
+.sfx-none    {background:var(--surface);      color:var(--muted)}
+.conf-bar{
+  height:3px;border-radius:2px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CONTROLS / FORM ELEMENTS
+═══════════════════════════════════════════════════════════ */
+.field{display:flex;flex-direction:column;gap:3px}
+.field label{font-size:9px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted)}
+input[type=number],input[type=text],select{
+  background:var(--surface3);border:1px solid var(--border);
+  border-radius:6px;color:var(--text);padding:5px 8px;
+  font-size:11px;outline:none;width:100%;
+  transition:border-color .15s;
+}
+input:focus,select:focus{border-color:var(--accent)}
+select option{background:var(--surface2)}
+
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+
+/* Toggle switch */
+.toggle-row{display:flex;align-items:center;justify-content:space-between;padding:2px 0}
+.toggle-row span{font-size:11px;color:var(--text)}
+.toggle{position:relative;width:36px;height:20px;flex-shrink:0}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-track{
+  position:absolute;inset:0;border-radius:20px;
+  background:var(--surface);cursor:pointer;transition:.25s;
+  border:1px solid var(--border);
+}
+.toggle input:checked + .toggle-track{background:var(--accent);border-color:var(--accent)}
+.toggle-track::after{
+  content:'';position:absolute;top:2px;left:2px;
+  width:14px;height:14px;border-radius:50%;
+  background:var(--text);transition:.25s;
+}
+.toggle input:checked + .toggle-track::after{transform:translateX(16px)}
+
+/* ═══════════════════════════════════════════════════════════
+   BUTTONS
+═══════════════════════════════════════════════════════════ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:8px 14px;border:none;border-radius:8px;
+  font-size:11px;font-weight:700;cursor:pointer;
+  transition:all .15s;user-select:none;letter-spacing:.2px;
+}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{
+  background:linear-gradient(135deg,var(--accent),var(--accent2));
+  color:#fff;
+  box-shadow:0 4px 14px var(--glow);
+}
+.btn-primary:hover:not(:disabled){
+  transform:translateY(-1px);
+  box-shadow:0 6px 20px var(--glow);
+}
+.btn-primary:active:not(:disabled){transform:translateY(0)}
+.btn-ghost{
+  background:var(--surface3);color:var(--sub);
+  border:1px solid var(--border);
+}
+.btn-ghost:hover:not(:disabled){background:var(--surface);color:var(--text)}
+.btn-success{background:rgba(34,197,94,.15);color:var(--success);border:1px solid rgba(34,197,94,.3)}
+.btn-danger{background:rgba(239,68,68,.12);color:var(--danger);border:1px solid rgba(239,68,68,.3)}
+.btn-full{width:100%}
+.btn-sm{padding:5px 10px;font-size:10px}
+
+/* ═══════════════════════════════════════════════════════════
+   PROGRESS BAR
+═══════════════════════════════════════════════════════════ */
+.progress-wrap{background:var(--surface3);border-radius:4px;overflow:hidden;height:5px}
+.progress-fill{
+  height:100%;border-radius:4px;
+  background:linear-gradient(90deg,var(--accent),var(--accent2));
+  transition:width .4s cubic-bezier(.4,0,.2,1);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   STATUS BAR
+═══════════════════════════════════════════════════════════ */
+.status-bar{
+  padding:5px 10px;border-radius:6px;
+  background:var(--surface3);
+  font-size:10px;color:var(--muted);
+  transition:all .3s;
+}
+.status-bar.ok  {background:rgba(34,197,94,.08);color:var(--success);border:1px solid rgba(34,197,94,.2)}
+.status-bar.err {background:rgba(239,68,68,.08);color:var(--danger); border:1px solid rgba(239,68,68,.2)}
+.status-bar.info{background:rgba(124,58,237,.08);color:var(--accent2);border:1px solid rgba(124,58,237,.2)}
+.status-bar.warn{background:rgba(245,158,11,.08);color:var(--warn);  border:1px solid rgba(245,158,11,.2)}
+
+/* ═══════════════════════════════════════════════════════════
+   AI BADGE
+═══════════════════════════════════════════════════════════ */
+.ai-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:2px 8px;border-radius:20px;font-size:9px;font-weight:700;
+  background:linear-gradient(135deg,rgba(124,58,237,.2),rgba(168,85,247,.2));
+  border:1px solid rgba(168,85,247,.3);color:var(--accent3);
+  letter-spacing:.4px;text-transform:uppercase;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ZOOM TIMELINE
+═══════════════════════════════════════════════════════════ */
+.timeline-track{
+  position:relative;height:24px;
+  background:var(--surface3);border-radius:6px;overflow:hidden;
+}
+.zoom-marker{
+  position:absolute;top:0;bottom:0;width:3px;
+  border-radius:2px;cursor:pointer;
+  transition:width .1s;
+}
+.zoom-marker:hover{width:5px}
+.zoom-in{background:var(--accent2)}
+.zoom-out{background:var(--muted)}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION HEADER
+═══════════════════════════════════════════════════════════ */
+.sec-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:6px;
+}
+.sec-hdr h3{
+  font-size:10px;font-weight:700;text-transform:uppercase;
+  letter-spacing:.6px;color:var(--sub);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HIDDEN / VISIBLE
+═══════════════════════════════════════════════════════════ */
+.hidden{display:none!important}
+.fade-in{animation:fadeIn .3s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* ═══════════════════════════════════════════════════════════
+   TOOLTIP
+═══════════════════════════════════════════════════════════ */
+[data-tip]{position:relative}
+[data-tip]::after{
+  content:attr(data-tip);
+  position:absolute;bottom:calc(100% + 6px);left:50%;
+  transform:translateX(-50%);white-space:nowrap;
+  background:var(--surface);color:var(--text);
+  font-size:9px;padding:4px 8px;border-radius:5px;
+  border:1px solid var(--border);pointer-events:none;
+  opacity:0;transition:opacity .15s;z-index:99;
+}
+[data-tip]:hover::after{opacity:1}
+</style>
+</head>
+
+<body>
+<div class="shell">
+
+<!-- ══════════════════════════════════════════════════════
+     TOP BAR
+══════════════════════════════════════════════════════ -->
+<header class="topbar">
+  <div class="logo">🎵</div>
+  <div class="brand">
+    <h1>Smart Sound Design</h1>
+    <p>AI Pacing Engine  ·  v1.0</p>
+  </div>
+  <div class="status-dot" onclick="checkServer()" data-tip="Bağlantı kontrolü">
+    <div class="dot pulsing" id="dot"></div>
+    <span id="conn-label">Bağlanıyor...</span>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════
+     TABS
+══════════════════════════════════════════════════════ -->
+<nav class="tabs">
+  <div class="tab active" onclick="switchTab('analyze')">Analiz</div>
+  <div class="tab"        onclick="switchTab('settings')">Ayarlar</div>
+  <div class="tab"        onclick="switchTab('about')">Hakkında</div>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════
+     TAB: ANALİZ
+══════════════════════════════════════════════════════ -->
+<div id="tab-analyze" class="body">
+
+  <!-- Waveform Görselleştirme -->
+  <div class="card">
+    <div class="waveform-wrap">
+      <canvas id="waveCanvas"></canvas>
+      <div class="waveform-overlay"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px">
+      <span id="wv-label" style="font-size:9px;color:var(--muted)">Ses dosyası bekleniyor</span>
+      <div class="ai-badge" id="ai-badge" style="display:none">🧠 AI Aktif</div>
+    </div>
+  </div>
+
+  <!-- Aksiyon Butonları -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+    <button class="btn btn-primary" id="btn-clip" onclick="analyzeByPath()">
+      🔍 Aktif Klibi Analiz Et
+    </button>
+    <button class="btn btn-ghost" id="btn-upload" onclick="analyzeByUpload()">
+      📁 Dosya Seç
+    </button>
+  </div>
+
+  <!-- İlerleme -->
+  <div id="progress-wrap" class="hidden">
+    <div class="progress-wrap">
+      <div class="progress-fill" id="progress-bar" style="width:0%"></div>
+    </div>
+    <div style="text-align:center;font-size:9px;color:var(--muted);margin-top:4px" id="progress-label">
+      Hazırlanıyor...
+    </div>
+  </div>
+
+  <!-- Durum Bandı -->
+  <div class="status-bar" id="status-bar">
+    Sunucuya bağlanmak için üstteki noktaya tıklayın.
+  </div>
+
+  <!-- Sonuç Paneli (başta gizli) -->
+  <div id="result-panel" class="hidden fade-in">
+
+    <!-- Stats -->
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-val" id="r-dur">—</div>
+        <div class="stat-lbl">Süre (s)</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="r-evt">—</div>
+        <div class="stat-lbl">Event</div>
+      </div>
+      <div class="stat">
+        <div class="stat-val" id="r-zoom">—</div>
+        <div class="stat-lbl">Zoom KF</div>
+      </div>
+    </div>
+
+    <!-- Event Listesi -->
+    <div class="card">
+      <div class="sec-hdr">
+        <h3>🎯 Tespit Edilen Olaylar</h3>
+        <span style="font-size:9px;color:var(--muted)" id="evt-count"></span>
+      </div>
+      <div class="event-list" id="event-list"></div>
+    </div>
+
+    <!-- Zoom Timeline -->
+    <div class="card">
+      <div class="sec-hdr">
+        <h3>⚡ Dinamik Zoom Haritası</h3>
+      </div>
+      <div class="timeline-track" id="zoom-track"></div>
+      <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:9px;color:var(--muted)">
+        <span>00:00:00</span>
+        <span id="tl-end">—</span>
+      </div>
+    </div>
+
+    <!-- Uygula Butonu -->
+    <button class="btn btn-success btn-full" id="btn-apply" onclick="applyToTimeline()">
+      ✅ Timeline'a Uygula
+    </button>
+
+  </div>
+
+</div><!-- /tab-analyze -->
+
+<!-- ══════════════════════════════════════════════════════
+     TAB: AYARLAR
+══════════════════════════════════════════════════════ -->
+<div id="tab-settings" class="body hidden">
+
+  <div class="card">
+    <div class="card-title">🔌 Backend Bağlantısı</div>
+    <div class="grid-2" style="gap:8px">
+      <div class="field" style="grid-column:1/-1">
+        <label>Sunucu URL</label>
+        <div style="display:flex;gap:6px">
+          <input type="text" id="server-url" value="http://127.0.0.1:8765" style="flex:1"/>
+          <button class="btn btn-ghost btn-sm" onclick="checkServer()">Test</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🎛️ Analiz Parametreleri</div>
+    <div class="grid-2" style="gap:8px">
+      <div class="field">
+        <label>Timeline Offset (s)</label>
+        <input type="number" id="s-offset" value="0" step="0.1" min="0"/>
+      </div>
+      <div class="field">
+        <label>Sessizlik Eşiği (dB)</label>
+        <input type="number" id="s-silence" value="-40" step="1" max="0"/>
+      </div>
+      <div class="field">
+        <label>Min. Peak Mesafesi (s)</label>
+        <input type="number" id="s-peak" value="0.5" step="0.1" min="0.1"/>
+      </div>
+      <div class="field">
+        <label>Zoom-In Scale (%)</label>
+        <input type="number" id="s-zoom" value="107" step="1" min="100" max="120"/>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🧠 AI Pipeline</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div class="toggle-row">
+        <span>🗣️ Whisper — Konuşma Vurgu Tespiti</span>
+        <label class="toggle"><input type="checkbox" id="ai-whisper" checked/><span class="toggle-track"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>🔊 YAMNet — Ses Olay Sınıflandırma</span>
+        <label class="toggle"><input type="checkbox" id="ai-yamnet" checked/><span class="toggle-track"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>💜 Duygu Analizi — Arousal Zoom</span>
+        <label class="toggle"><input type="checkbox" id="ai-emotion" checked/><span class="toggle-track"></span></label>
+      </div>
+      <div class="toggle-row">
+        <span>⚡ DSP Hibrit Modu (hızlı + AI)</span>
+        <label class="toggle"><input type="checkbox" id="ai-dsp" checked/><span class="toggle-track"></span></label>
+      </div>
+
+      <div class="field" style="margin-top:4px">
+        <label>Whisper Model Boyutu</label>
+        <select id="ai-model">
+          <option value="tiny">tiny — En Hızlı (düşük doğruluk)</option>
+          <option value="base" selected>base — Dengeli (önerilen)</option>
+          <option value="small">small — Daha Doğru</option>
+          <option value="medium">medium — Yüksek Doğruluk</option>
+          <option value="large">large — En Doğru (yavaş)</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🎚️ Analiz Modu</div>
+    <div id="mode-btns" style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+      <button class="btn btn-ghost btn-sm active-mode" id="mode-dsp"
+              onclick="setMode('dsp')" style="border-color:var(--accent);color:var(--accent2)">
+        ⚡ DSP (Hızlı)
+      </button>
+      <button class="btn btn-ghost btn-sm" id="mode-ai" onclick="setMode('ai')">
+        🧠 Tam AI
+      </button>
+    </div>
+  </div>
+
+</div><!-- /tab-settings -->
+
+<!-- ══════════════════════════════════════════════════════
+     TAB: HAKKINDA
+══════════════════════════════════════════════════════ -->
+<div id="tab-about" class="body hidden">
+  <div class="card glow" style="text-align:center;padding:20px">
+    <div style="font-size:36px;margin-bottom:8px">🎵</div>
+    <h2 style="font-size:15px;margin-bottom:4px">BeatDrop Studio</h2>
+    <p style="color:var(--sub);font-size:10px">Versiyon 1.0.0</p>
+    <p style="color:var(--muted);font-size:9px;margin-top:6px">AI-Powered Audio Analysis Engine</p>
+  </div>
+  <div class="card">
+    <div class="card-title">🔧 Sistem Bilgisi</div>
+    <div id="sys-info" style="font-size:10px;color:var(--sub);display:flex;flex-direction:column;gap:4px">
+      <span>Backend: <span id="si-backend" style="color:var(--muted)">Kontrol ediliyor...</span></span>
+      <span>SFX Dosyaları: <span id="si-sfx" style="color:var(--muted)">—</span></span>
+      <span>Toplam Analiz: <span id="si-count" style="color:var(--muted)">0</span></span>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">📖 Kullanım Kılavuzu</div>
+    <div style="font-size:10px;color:var(--sub);line-height:1.7">
+      <b style="color:var(--text)">1. Analiz Et:</b> "Aktif Klibi Analiz Et" veya dosya seçin<br>
+      <b style="color:var(--text)">2. İncele:</b> Tespit edilen olayları listede gözden geçirin<br>
+      <b style="color:var(--text)">3. Uygula:</b> "Timeline'a Uygula" ile SFX ve zoom efektlerini ekleyin<br>
+      <b style="color:var(--text)">4. AI Mod:</b> Ayarlar → Tam AI için Whisper + YAMNet'i etkinleştirin
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:7px">
+    <button class="btn btn-ghost btn-sm" onclick="openDocs()">📚 Dokümantasyon</button>
+    <button class="btn btn-ghost btn-sm" onclick="openSupport()">💬 Destek</button>
+  </div>
+</div><!-- /tab-about -->
+
+<!-- ══════════════════════════════════════════════════════
+     BOTTOM BAR
+══════════════════════════════════════════════════════ -->
+<footer class="bottombar">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <button class="btn btn-danger btn-sm hidden" id="btn-clear"
+            onclick="clearResults()">Temizle</button>
+    <span style="font-size:9px;color:var(--muted);margin-left:auto">
+      BDS v1.0 · <span id="analysis-mode-label" style="color:var(--accent3)">DSP Mod</span>
+    </span>
+  </div>
+</footer>
+
+</div><!-- /shell -->
+
+<!-- ══════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════ -->
+<script>
+'use strict';
+
+/* ─── CEP Bridge ──────────────────────────────────────── */
+const cs = typeof CSInterface !== 'undefined' ? new CSInterface() : null;
+
+/* ─── State ───────────────────────────────────────────── */
+let analysisData = null;
+let analysisMode = 'dsp';   // 'dsp' | 'ai'
+let analysisCount = 0;
+
+/* ─── Waveform Canvas ─────────────────────────────────── */
+const waveCanvas = document.getElementById('waveCanvas');
+const waveCtx    = waveCanvas.getContext('2d');
+let waveAnim     = null;
+let wavePhase    = 0;
+let waveActive   = false;
+
+function resizeCanvas() {
+  waveCanvas.width  = waveCanvas.parentElement.offsetWidth;
+  waveCanvas.height = waveCanvas.parentElement.offsetHeight;
+}
+window.addEventListener('resize', resizeCanvas);
+resizeCanvas();
+
+function drawIdleWave() {
+  const w = waveCanvas.width, h = waveCanvas.height;
+  waveCtx.clearRect(0, 0, w, h);
+
+  const grad = waveCtx.createLinearGradient(0, 0, w, 0);
+  grad.addColorStop(0,   'rgba(124,58,237,0)');
+  grad.addColorStop(0.5, 'rgba(168,85,247,0.6)');
+  grad.addColorStop(1,   'rgba(124,58,237,0)');
+
+  waveCtx.beginPath();
+  waveCtx.moveTo(0, h / 2);
+  for (let x = 0; x <= w; x++) {
+    const amp = waveActive ? (12 + Math.random() * 10) : 4;
+    const y   = h / 2 + Math.sin((x / w) * Math.PI * 8 + wavePhase) * amp
+                       + Math.sin((x / w) * Math.PI * 3 + wavePhase * 1.3) * (amp * 0.4);
+    waveCtx.lineTo(x, y);
+  }
+  waveCtx.strokeStyle = grad;
+  waveCtx.lineWidth   = 1.5;
+  waveCtx.stroke();
+  wavePhase += waveActive ? 0.08 : 0.02;
+  waveAnim = requestAnimationFrame(drawIdleWave);
+}
+drawIdleWave();
+
+function setWaveActive(active) {
+  waveActive = active;
+}
+
+/* ─── Tab Switching ───────────────────────────────────── */
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    const names = ['analyze', 'settings', 'about'];
+    t.classList.toggle('active', names[i] === name);
+  });
+  ['analyze', 'settings', 'about'].forEach(n => {
+    const el = document.getElementById('tab-' + n);
+    el.classList.toggle('hidden', n !== name);
+  });
+  if (name === 'about') loadSysInfo();
+}
+
+/* ─── Analysis Mode ───────────────────────────────────── */
+function setMode(mode) {
+  analysisMode = mode;
+  document.getElementById('mode-dsp').style.borderColor  = mode === 'dsp' ? 'var(--accent)' : '';
+  document.getElementById('mode-dsp').style.color        = mode === 'dsp' ? 'var(--accent2)' : '';
+  document.getElementById('mode-ai').style.borderColor   = mode === 'ai' ? 'var(--accent)' : '';
+  document.getElementById('mode-ai').style.color         = mode === 'ai' ? 'var(--accent2)' : '';
+  document.getElementById('analysis-mode-label').textContent =
+    mode === 'ai' ? 'AI Mod' : 'DSP Mod';
+  document.getElementById('ai-badge').style.display = mode === 'ai' ? 'inline-flex' : 'none';
+}
+
+/* ─── Helpers ─────────────────────────────────────────── */
+function serverUrl() {
+  return document.getElementById('server-url').value.trim();
+}
+
+function setStatus(msg, type = '') {
+  const bar = document.getElementById('status-bar');
+  bar.textContent = msg;
+  bar.className = 'status-bar' + (type ? ' ' + type : '');
+}
+
+function setProgress(pct, label = '') {
+  const wrap = document.getElementById('progress-wrap');
+  const bar  = document.getElementById('progress-bar');
+  const lbl  = document.getElementById('progress-label');
+  wrap.classList.toggle('hidden', pct >= 100);
+  bar.style.width = Math.min(pct, 100) + '%';
+  if (label) lbl.textContent = label;
+}
+
+function setBusy(busy) {
+  setWaveActive(busy);
+  ['btn-clip', 'btn-upload', 'btn-apply'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.disabled = busy;
+  });
+}
+
+function getAISettings() {
+  return {
+    use_whisper:  document.getElementById('ai-whisper').checked,
+    use_yamnet:   document.getElementById('ai-yamnet').checked,
+    use_emotion:  document.getElementById('ai-emotion').checked,
+    also_run_dsp: document.getElementById('ai-dsp').checked,
+    whisper_model: document.getElementById('ai-model').value,
+    timeline_offset:      parseFloat(document.getElementById('s-offset').value) || 0,
+    silence_db_threshold: parseFloat(document.getElementById('s-silence').value) || -40,
+    peak_min_distance:    parseFloat(document.getElementById('s-peak').value)    || 0.5,
+    zoom_in_scale:        parseFloat(document.getElementById('s-zoom').value)    || 107,
+  };
+}
+
+/* ─── Server Check ────────────────────────────────────── */
+async function checkServer() {
+  const dot   = document.getElementById('dot');
+  const label = document.getElementById('conn-label');
+  dot.className = 'dot pulsing';
+  label.textContent = 'Bağlanıyor...';
+  try {
+    const res = await fetch(`${serverUrl()}/health`, { signal: AbortSignal.timeout(4000) });
+    if (res.ok) {
+      dot.className = 'dot ok';
+      label.textContent = 'Bağlı';
+      setStatus('✓ Backend sunucusu çalışıyor.', 'ok');
+      loadSfxStatus();
+    } else {
+      dot.className = 'dot err';
+      label.textContent = 'Hata';
+      setStatus(`Sunucu yanıt hatası: ${res.status}`, 'err');
+    }
+  } catch {
+    dot.className = 'dot err';
+    label.textContent = 'Bağlanamadı';
+    setStatus('Backend çalışmıyor. Terminalde: uvicorn main:app --port 8765', 'err');
+  }
+}
+
+/* ─── SFX Status ──────────────────────────────────────── */
+async function loadSfxStatus() {
+  try {
+    const res = await fetch(`${serverUrl()}/sfx/validate`, { signal: AbortSignal.timeout(3000) });
+    if (!res.ok) return;
+    const data = await res.json();
+    const missing = Object.entries(data.files).filter(([,v]) => !v).map(([k]) => k);
+    const sfxEl = document.getElementById('si-sfx');
+    if (sfxEl) sfxEl.textContent = missing.length === 0
+      ? '✓ Tümü mevcut'
+      : `⚠ Eksik: ${missing.join(', ')}`;
+  } catch {}
+}
+
+/* ─── Analyze By Path ─────────────────────────────────── */
+async function analyzeByPath() {
+  setBusy(true);
+  setStatus('Aktif klip bilgisi alınıyor...', 'info');
+  setProgress(10, 'Premiere\'dan dosya yolu alınıyor...');
+  try {
+    const filePath = await callExtendScript('getActiveClipAudioPath', []);
+    if (!filePath || filePath.startsWith('ERROR')) {
+      setStatus(`Klip yolu alınamadı: ${filePath || 'Bilinmeyen hata'}`, 'err');
+      setBusy(false); setProgress(100); return;
+    }
+    await runAnalysis({ file_path: filePath });
+  } catch (err) {
+    setStatus(`Hata: ${err.message}`, 'err');
+    setBusy(false); setProgress(100);
+  }
+}
+
+/* ─── Analyze By Upload ───────────────────────────────── */
+function analyzeByUpload() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.wav,.mp3,.flac,.ogg,.aac';
+  input.onchange = async () => {
+    const file = input.files[0];
+    if (!file) return;
+    setBusy(true);
+    setStatus(`Yükleniyor: ${file.name}`, 'info');
+    setProgress(20, 'Dosya yükleniyor...');
+
+    const settings  = getAISettings();
+    const formData  = new FormData();
+    formData.append('file', file);
+    Object.entries(settings).forEach(([k, v]) => formData.append(k, v));
+
+    try {
+      const res = await fetch(`${serverUrl()}/analyze/upload`, {
+        method: 'POST', body: formData
+      });
+      if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Hata'); }
+      handleResult(await res.json());
+    } catch (err) {
+      setStatus(`Yükleme hatası: ${err.message}`, 'err');
+    } finally {
+      setBusy(false); setProgress(100);
+    }
+  };
+  input.click();
+}
+
+/* ─── Core Analysis Call ──────────────────────────────── */
+async function runAnalysis(basePayload) {
+  const settings = getAISettings();
+  const payload  = { ...basePayload, ...settings };
+  const endpoint = analysisMode === 'ai' ? '/analyze/ai' : '/analyze';
+
+  const modeLabel = analysisMode === 'ai' ? 'AI Pipeline' : 'DSP';
+  setStatus(`${modeLabel} analizi çalışıyor...`, 'info');
+  setProgress(40, `${modeLabel} motoru hesaplıyor...`);
+
+  try {
+    const res = await fetch(`${serverUrl()}${endpoint}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || `HTTP ${res.status}`); }
+    setProgress(90, 'Sonuçlar işleniyor...');
+    handleResult(await res.json());
+  } catch (err) {
+    setStatus(`Analiz hatası: ${err.message}`, 'err');
+    setBusy(false); setProgress(100);
+  }
+}
+
+/* ─── Handle Result ───────────────────────────────────── */
+function handleResult(data) {
+  analysisData = data;
+  analysisCount++;
+
+  const events = data.events || [];
+  const zooms  = data.zoom_keyframes || [];
+  const dur    = data.total_duration || 0;
+
+  /* Stats */
+  document.getElementById('r-dur').textContent  = dur.toFixed(1);
+  document.getElementById('r-evt').textContent  = events.length;
+  document.getElementById('r-zoom').textContent = zooms.length;
+
+  /* Event list */
+  const list = document.getElementById('event-list');
+  list.innerHTML = '';
+  const visible = events.filter(e => e.sfx_type !== 'none').slice(0, 40);
+  document.getElementById('evt-count').textContent = `${visible.length} gösteriliyor`;
+
+  visible.forEach(evt => {
+    const row = document.createElement('div');
+    row.className = 'event-row';
+    const confPct = Math.round((evt.confidence || 0) * 100);
+    row.innerHTML = `
+      <span class="tc">${evt.timecode}</span>
+      <span class="ev-type">${fmtEventType(evt.event_type)}</span>
+      <span class="sfx-pill sfx-${evt.sfx_type}">${evt.sfx_type}</span>
+      <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+        <div class="progress-wrap" style="width:32px;height:3px;background:var(--surface)">
+          <div class="progress-fill" style="width:${confPct}%;background:${confColor(evt.sfx_type)}"></div>
+        </div>
+        <span style="font-size:8px;color:var(--muted)">${confPct}%</span>
+      </div>
+    `;
+    list.appendChild(row);
+  });
+
+  /* Zoom timeline */
+  const track = document.getElementById('zoom-track');
+  track.innerHTML = '';
+  if (dur > 0) {
+    zooms.forEach(kf => {
+      const marker = document.createElement('div');
+      marker.className = `zoom-marker ${kf.type}`;
+      marker.style.left = ((kf.time_seconds / dur) * 100) + '%';
+      marker.title = `${kf.timecode} — ${kf.type} (${kf.scale}%)`;
+      track.appendChild(marker);
+    });
+  }
+  document.getElementById('tl-end').textContent = fmtSec(dur);
+  document.getElementById('wv-label').textContent =
+    `${dur.toFixed(1)}s · ${data.sample_rate || 0} Hz · ${events.length} event`;
+
+  /* Show panels */
+  document.getElementById('result-panel').classList.remove('hidden');
+  document.getElementById('btn-clear').classList.remove('hidden');
+
+  const peakCount = events.filter(e => e.event_type !== 'pause').length;
+  setStatus(`✓ Analiz tamamlandı — ${peakCount} vurgu noktası`, 'ok');
+  setBusy(false);
+  setProgress(100);
+}
+
+/* ─── Apply to Timeline ───────────────────────────────── */
+async function applyToTimeline() {
+  if (!analysisData) { setStatus('Önce analiz yapın.', 'warn'); return; }
+  setBusy(true);
+  setStatus('Timeline\'a uygulanıyor...', 'info');
+  try {
+    const result = await callExtendScript('applyAnalysisToTimeline', [JSON.stringify(analysisData)]);
+    if (result && result.startsWith('ERROR')) {
+      setStatus(`Uygulama hatası: ${result}`, 'err');
+    } else {
+      setStatus(`✓ Tamamlandı! ${result}`, 'ok');
+    }
+  } catch (err) {
+    setStatus(`Hata: ${err.message}`, 'err');
+  } finally {
+    setBusy(false);
+  }
+}
+
+/* ─── Clear ───────────────────────────────────────────── */
+function clearResults() {
+  analysisData = null;
+  document.getElementById('result-panel').classList.add('hidden');
+  document.getElementById('btn-clear').classList.add('hidden');
+  document.getElementById('event-list').innerHTML = '';
+  document.getElementById('zoom-track').innerHTML = '';
+  setStatus('Temizlendi.', '');
+  setWaveActive(false);
+}
+
+/* ─── Sys Info ────────────────────────────────────────── */
+async function loadSysInfo() {
+  const el = document.getElementById('si-backend');
+  const countEl = document.getElementById('si-count');
+  if (el) el.textContent = '...';
+  if (countEl) countEl.textContent = analysisCount;
+  try {
+    const res = await fetch(`${serverUrl()}/health`, { signal: AbortSignal.timeout(3000) });
+    if (res.ok && el) { const d = await res.json(); el.textContent = `✓ ${d.version}`; }
+  } catch {
+    if (el) el.textContent = '✗ Çalışmıyor';
+  }
+  loadSfxStatus();
+}
+
+/* ─── ExtendScript Bridge ─────────────────────────────── */
+function callExtendScript(fn, args) {
+  return new Promise((resolve, reject) => {
+    if (!cs) {
+      // DEV mode
+      if (fn === 'getActiveClipAudioPath') resolve('/test/audio.wav');
+      else resolve('DEV: uygulama simüle edildi');
+      return;
+    }
+    const argStr = args.map(a => JSON.stringify(a)).join(', ');
+    cs.evalScript(`${fn}(${argStr})`, r => {
+      if (r === 'EvalScript_ErrMessage') reject(new Error(`ExtendScript hatası: ${fn}`));
+      else resolve(r);
+    });
+  });
+}
+
+/* ─── Formatters ──────────────────────────────────────── */
+function fmtEventType(t) {
+  return { peak: '🎯 Vurgu', scene_transition: '🔀 Sahne Geçişi', pause: '⏸ Sessizlik' }[t] || t;
+}
+function confColor(sfx) {
+  return { whoosh:'#f59e0b', sub_bass:'#ef4444', pop:'#22d3ee', ding:'#22c55e' }[sfx] || '#7c3aed';
+}
+function fmtSec(s) {
+  const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = Math.floor(s % 60);
+  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+}
+function openDocs()    { if(cs) cs.openURLInDefaultBrowser('https://BeatDropStudio.com/docs'); }
+function openSupport() { if(cs) cs.openURLInDefaultBrowser('mailto:destek@BeatDropStudio.com'); }
+
+/* ─── Init ────────────────────────────────────────────── */
+window.addEventListener('load', () => {
+  setTimeout(checkServer, 600);
+});
+</script>
+</body>
+</html>
