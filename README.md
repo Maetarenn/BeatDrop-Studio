@@ -98,7 +98,7 @@ BeatDrop Studio ile birlikte 16 popüler efekt tam kalitede hazır gelir:
 ## 🛠️ Kurulum & Hızlı Başlangıç ⚡
 
 ### 1️⃣ Tek Tıkla Kurulum (Önerilen) 📦
-1. [Releases](https://github.com/) sayfasından en son `BeatDropStudio_Setup.exe` dosyasını indirin.
+1.İnstallation File dosyasından en son `BeatDropStudio_Setup.exe` dosyasını indirin.
 2. Kurulum sihirbazını çalıştırın; gerekli motorları, ses paketlerini ve DaVinci/Premiere köprülerini otomatik kuracaktır.
 
 ---
